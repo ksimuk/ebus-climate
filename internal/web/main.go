@@ -10,22 +10,23 @@ type Server struct {
 }
 
 type State struct {
+	// Config
+	MinTemp float64 `json:"min_temp"`
+	MaxTemp float64 `json:"max_temp"`
+
+	DesiredHotWaterTemp int `json:"desired_hot_water_temp"`
+	DesiredFlowTemp     int `json:"desired_flow_temp"`
+
+	HotWaterEnabled bool `json:"hot_water_enabled"`
+	HeatingEnabled  bool `json:"heating_enabled"`
+
 	// Sensors
-	MinTemp     float64
-	MaxTemp     float64
-	CurrentTemp float64
-
-	// Boiler
-	HotWaterTemp    int
-	DesiredFlowTemp int
-
-	HotWaterEnabled bool
-	HeatingEnabled  bool
+	CurrentTemp     float64 `json:"current_temp"`
+	CurrentHumidity float64 `json:"current_humidity"`
 
 	//State
-	FlowTemp float64
-
-	isHeating bool
+	FlowTemp  float64 `json:"flow_temp"`
+	IsHeating bool    `json:"is_heating"`
 }
 
 func Start(port int, climate *climate.Climate) {
@@ -39,20 +40,25 @@ func Start(port int, climate *climate.Climate) {
 func (s *Server) start() {
 }
 
-func (s *Server) setState() {
+func (s *Server) setState(state State) {
+	s.climate.SetMaxTemperature(state.MaxTemp)
+	s.climate.SetMinTemperature(state.MinTemp)
+	s.climate.SetDesiredHotWaterTemperature(state.DesiredHotWaterTemp)
+	s.climate.SetDesiredFlowTemperature(state.DesiredFlowTemp)
+
 }
 
 func (s *Server) getState() {
 	state := State{
-		MinTemp:     s.climate.MinTemperature(),
-		MaxTemp:     s.climate.MaxTemperature(),
-		CurrentTemp: s.climate.CurrentTemperature(),
+		MinTemp:             s.climate.MinTemperature(),
+		MaxTemp:             s.climate.MaxTemperature(),
+		CurrentTemp:         s.climate.CurrentTemperature(),
+		CurrentHumidity:     s.climate.CurrentHumidity(),
+		DesiredHotWaterTemp: s.climate.DesiredHotWaterTemperature(),
+		DesiredFlowTemp:     s.climate.DesiredFlowTemperature(),
+		FlowTemp:            s.climate.FlowTemperature(),
 
-		HotWaterTemp:    s.climate.HotWaterTemperature(),
-		DesiredFlowTemp: s.climate.DesiredFlowTemperature(),
-		FlowTemp:        s.climate.FlowTemperature(),
-
-		isHeating: s.climate.IsHeating(),
+		IsHeating: s.climate.IsHeating(),
 	}
 	log.Debug().Msgf("State: %+v", state)
 }

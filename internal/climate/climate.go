@@ -102,16 +102,28 @@ func (c *Climate) RoomTemperature() Sensor {
 	return c.roomSensor
 }
 
-func (c *Climate) MinTemperature() float64 {
-	return c.minTemperature
-}
-
 func (c *Climate) CurrentTemperature() float64 {
 	return c.RoomTemperature().temperature
 }
 
+func (c *Climate) CurrentHumidity() float64 {
+	return c.RoomTemperature().humidity
+}
+
 func (c *Climate) MaxTemperature() float64 {
 	return c.maxTemperature
+}
+
+func (c *Climate) SetMaxTemperature(temp float64) {
+	c.maxTemperature = temp
+}
+
+func (c *Climate) SetMinTemperature(temp float64) {
+	c.minTemperature = temp
+}
+
+func (c *Climate) MinTemperature() float64 {
+	return c.minTemperature
 }
 
 func (c *Climate) fireHeating() error {
@@ -136,10 +148,10 @@ func (c *Climate) ReturnTemperature() float64 {
 	return c.returnTemperature
 }
 
-func (c *Climate) HotWaterTemperature() int {
+func (c *Climate) DesiredHotWaterTemperature() int {
 	return c.hotWaterTemperature
 }
 
-func (c *Climate) SetHotWaterTemperature(temp int) {
+func (c *Climate) SetDesiredHotWaterTemperature(temp int) {
 	c.hotWaterTemperature = temp
 }
