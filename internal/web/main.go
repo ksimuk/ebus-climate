@@ -7,11 +7,12 @@ import (
 
 	"github.com/ksimuk/ebus-climate/internal/climate"
 	"github.com/ksimuk/ebus-climate/internal/config"
+	"github.com/ksimuk/ebus-climate/internal/vailant"
 	"github.com/rs/zerolog/log"
 )
 
 type Server struct {
-	climate *climate.Climate
+	climate climate.Climate
 	config  config.Config
 }
 
@@ -39,9 +40,10 @@ type Get struct {
 
 func Start(config config.Config) {
 	println("Starting web server on port", config.WebPort)
+	climate := vailant.New(&config)
 	server := Server{
 		config:  config,
-		climate: climate.New(&config),
+		climate: climate,
 	}
 	server.start()
 }

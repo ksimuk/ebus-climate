@@ -1,12 +1,8 @@
 package climate
 
-import (
-	"github.com/ksimuk/ebus-climate/internal/config"
-	"github.com/ksimuk/ebus-climate/internal/ebusd/client"
-)
-
 type Mode struct {
-	heating, hotWater bool
+	heating bool
+	// hotWater bool
 }
 
 type Sensor struct {
@@ -14,9 +10,7 @@ type Sensor struct {
 	humidity    float64
 }
 
-type Climate struct {
-	ebusClient *client.Client
-	// Config
+type ClimateConfig struct {
 	minTemperature         float64
 	maxTemperature         float64
 	hotWaterTemperature    int
@@ -32,13 +26,13 @@ type Climate struct {
 	returnTemperature float64
 }
 
-func New(config *config.Config) *Climate {
-	ebusClient := client.New(config)
-	return &Climate{
-		ebusClient: ebusClient,
-	}
+type Info struct {
+	Signal      string
+	Scan        string
+	Debug       string
+	EbusVersion string
 }
 
-func (c *Climate) Info() ([]string, error) {
-	return c.ebusClient.Info()
+type Climate interface {
+	Info() ([]string, error)
 }

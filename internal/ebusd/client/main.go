@@ -12,6 +12,7 @@ import (
 )
 
 type Circuit string
+
 type Client struct {
 	config *config.Config
 }
@@ -67,7 +68,7 @@ func (c Client) read(parameter string, force bool) ([]string, error) {
 	if force {
 		args = " -f"
 	}
-	request := fmt.Sprintf("read %s %s\n", parameter, args)
+	request := fmt.Sprintf("read -c bai %s%s\n", parameter, args)
 
 	reply, err := c.request(request)
 
