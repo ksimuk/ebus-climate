@@ -1,0 +1,12 @@
+web_port: 1080
+
+climate:
+  power: 7000
+  min_run_time: 5
+  max_run_time: 20
+  flow_curve: "linear"
+  temperature_sensor_mac: "00:11:22:33:44:55"
+
+ebus:
+  host: "192.168.175.93"
+  port: 8888

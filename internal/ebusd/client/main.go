@@ -7,25 +7,24 @@ import (
 	"net"
 	"strings"
 
+	"github.com/ksimuk/ebus-climate/internal/config"
 	"github.com/rs/zerolog/log"
 )
 
 type Circuit string
-
 type Client struct {
-	host string
-	port int
+	config *config.Config
 }
 
-func New(host string, port int) *Client {
+func New(config *config.Config) *Client {
 	return &Client{
-		host: host,
-		port: port,
+		config: config,
 	}
 }
 
 func (c Client) request(request string) ([]string, error) {
-	connection, err := net.Dial("tcp", fmt.Sprintf("%s:%d", c.host, c.port))
+	log.Debug().Msgf("Connecting to ebusd at %s:%d", c.config.Ebus.Host, c.config.Ebus.Port)
+	connection, err := net.Dial("tcp", fmt.Sprintf("%s:%d", c.config.Ebus.Host, c.config.Ebus.Port))
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +49,7 @@ func (c Client) request(request string) ([]string, error) {
 		result = append(result, string(line))
 	}
 	if (len(result)) == 0 {
-		return nil, errors.New("Empty reponse")
+		return nil, errors.New("empty response")
 	}
 	for _, line := range result {
 		err := checkEbusError(line)
@@ -80,6 +79,16 @@ func (c Client) read(parameter string, force bool) ([]string, error) {
 
 }
 
+func (c Client) Info() ([]string, error) {
+	request := "info\n"
+	reply, err := c.request(request)
+	if err != nil {
+		return nil, err
+	}
+	log.Debug().Msgf("Received reply: %s", reply)
+	return reply, nil
+}
+
 func (c Client) write(parameter string, value string) error {
 	request := fmt.Sprintf("write %s %s\n", parameter, value)
 	_, err := c.request(request)
@@ -91,6 +100,10 @@ func (c Client) write(parameter string, value string) error {
 
 func (c Client) Get(parameter string) ([]string, error) {
 	return c.read(parameter, false)
+}
+
+func (c Client) Set(parameter string, value string) error {
+	return c.write(parameter, value)
 }
 
 func checkEbusError(reply string) error {

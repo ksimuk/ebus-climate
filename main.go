@@ -5,18 +5,14 @@ import (
 	"os"
 
 	"github.com/akamensky/argparse"
-	"github.com/ksimuk/ebus-climate/internal/climate"
-	"github.com/ksimuk/ebus-climate/internal/ebusd/client"
+	"github.com/ksimuk/ebus-climate/internal/config"
 	"github.com/ksimuk/ebus-climate/internal/web"
 )
 
 func main() {
-	parser := argparse.NewParser("ebus-climate", "Proxy between ebusd and ha")
+	parser := argparse.NewParser("ebus-climate", "ebus climate service")
 
-	ebusHost := parser.String("", "ehost", &argparse.Options{Required: false, Help: "Ebusd host", Default: "localhost"})
-	ebusPort := parser.Int("", "eport", &argparse.Options{Required: false, Help: "Ebusd port", Default: 8888})
-
-	servicePort := parser.Int("", "port", &argparse.Options{Required: false, Help: "Service port", Default: 1080})
+	configPath := parser.String("", "config", &argparse.Options{Required: true, Help: "Config Path"})
 
 	err := parser.Parse(os.Args)
 	if err != nil {
@@ -24,7 +20,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	ebusClient := client.New(*ebusHost, *ebusPort)
-	climate := climate.New(ebusClient)
-	web.Start(*servicePort, climate)
+	config, err := config.Load(*configPath)
+	if err != nil {
+		fmt.Printf("Error loading config: %v\n", err)
+		os.Exit(1)
+	}
+
+	web.Start(*config)
 }
