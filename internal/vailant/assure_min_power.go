@@ -33,6 +33,10 @@ func assureMinPower(flowTemp float64, returnTemp float64) int {
 }
 
 func (c *eBusClimate) onReturnTemperatureChange() {
-	c.desiredTemp = assureMinPower(c.flowTemp, c.returnTemp)
+	newTemp := assureMinPower(c.flowTemp, c.returnTemp)
+	if newTemp != c.desiredTemp {
+		c.desiredTemp = newTemp
+		c.pingHeating()
+	}
 	log.Debug().Msgf("Adjusted desired flow temperature to %d based on return %f and flow %f", c.desiredTemp, c.returnTemp, c.flowTemp)
 }

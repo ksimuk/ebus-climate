@@ -62,6 +62,7 @@ func (s *FileClimateStore) Load() (*ClimateState, error) {
 
 // Save schedules saving the climate state to the file after a delay.
 func (s *FileClimateStore) Save(state *ClimateState) error {
+	state.LastActive = time.Now().Format(time.RFC3339)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

@@ -38,8 +38,6 @@ type eBusClimate struct {
 	flowTemp   float64
 	returnTemp float64
 
-	heatLoss float64
-
 	loss3 int
 	loss7 int
 	power int
@@ -75,22 +73,36 @@ func New(config *config.Config) *eBusClimate {
 	}
 
 	c.state, _ = c.stateStore.Load()
-	c.heatLoss = c.state.HeatLoss
 	lastActivity, err := time.Parse(time.RFC3339, c.state.LastActive)
 	if err != nil {
 		log.Warn().Msgf("Failed to parse last activity time: %v", err)
 	} else {
 		// estimate heat loss since last activity
 		minutes := time.Since(lastActivity).Minutes()
-		c.heatLoss = c.state.HeatLoss - c.getMinuteLoss()*minutes
-		if c.heatLoss < 0 {
-			c.heatLoss = -1
+		c.state.HeatLoss = c.state.HeatLoss - c.getMinuteLoss()*minutes
+		if c.state.HeatLoss < 0 {
+			c.state.HeatLoss = -1
 		}
-		log.Info().Msgf("Estimated heat loss of %f kWh since last activity %v (%f minutes)", c.heatLoss, lastActivity, minutes)
+		log.Info().Msgf("Estimated heat loss of %f kWh since last activity %v (%f minutes)", c.state.HeatLoss, lastActivity, minutes)
 	}
 
 	c.StartPolling(POOLING_INTERVAL, c.readBoiler)
 	c.startCycler()
+
+	// start timer to save state every minute
+	go func() {
+		ticker := time.NewTicker(time.Minute)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				c.stateStore.Save(c.state)
+			case <-c.stopChan:
+				return
+			}
+		}
+	}()
+
 	return &c
 }
 

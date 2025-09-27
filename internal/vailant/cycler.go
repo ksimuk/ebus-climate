@@ -16,13 +16,23 @@ func (c *eBusClimate) startCycler() {
 		for {
 			select {
 			case <-ticker.C:
+				c.calculateConsumption()
 				c.calculateLoss()
 				c.pingHeating() // keep connection with boiler active
+
 			case <-c.stopChan:
 				return
 			}
 		}
 	}()
+}
+
+func (c *eBusClimate) calculateConsumption() {
+	if c.IsGasActive() {
+		c.state.ConsumptionHeating += float64(c.power) / 60 / 1000 // per minute kWh
+	}
+	c.stateStore.Save(c.state) // save state with new consumption and heat loss
+
 }
 
 func (c *eBusClimate) getMinuteLoss() float64 {
@@ -41,14 +51,12 @@ func (c *eBusClimate) getMinuteLoss() float64 {
 
 func (c *eBusClimate) calculateLoss() {
 	currentLoss := c.getMinuteLoss()
-	c.heatLoss = c.heatLoss - currentLoss
-	log.Debug().Msgf("heat loss balance %f, at temps %f, with loss %f", c.heatLoss, c.state.OutsideTemp, currentLoss)
+	c.state.HeatLoss = c.state.HeatLoss - currentLoss
+	log.Debug().Msgf("heat loss balance %f, at temps %f, with loss %f", c.state.HeatLoss, c.state.OutsideTemp, currentLoss)
 
-	if c.heatLoss < 0 {
-		added := c.runCycle()
-		c.heatLoss = c.heatLoss + added
-		c.state.ConsumptionHeating += added / 1000 // convert to kWh
-		log.Info().Msgf("Starting new heating cycle to cover heat loss, new balance %f", c.heatLoss)
+	if c.state.HeatLoss < 0 {
+		c.state.HeatLoss = c.state.HeatLoss + c.runCycle()
+		log.Info().Msgf("Starting new heating cycle to cover heat loss, new balance %f", c.state.HeatLoss)
 	}
 }
 
@@ -67,5 +75,4 @@ func (c *eBusClimate) runFor(minutes int) {
 			c.StopHeating()
 		})
 	}()
-	c.state.LastActive = time.Now().Format(time.RFC3339) // record last launch
 }

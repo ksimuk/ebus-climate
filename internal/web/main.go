@@ -43,7 +43,7 @@ type Get struct {
 	Boiler     struct {
 		Model    string `json:"model"`
 		Firmware string `json:"firmware"`
-	}
+	} `json:"boiler"`
 
 	ConsumptionHeating float64 `json:"consumption_heating"` // total consumption for heating in kWh
 	Connected          bool    `json:"connected"`
