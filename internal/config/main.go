@@ -9,17 +9,20 @@ import (
 
 type Config struct {
 	Ebus struct {
-		Host string `yaml:"host"`
-		Port int    `yaml:"port"`
+		Host    string `yaml:"host"`
+		Port    int    `yaml:"port"`
+		Circuit string `yaml:"circuit"`
 	} `yaml:"ebus"`
 
 	WebPort int `yaml:"web_port"`
 	Climate struct {
-		Power                int     `yaml:"power"`        // boiler power in kwh
-		MinRunTime           float64 `yaml:"min_run_time"` // minimum boiler run time in minutes
-		MaxRunTime           float64 `yaml:"max_run_time"` // maximum boiler run time in minutes
-		FlowCurve            string  `yaml:"flow_curve"`   // flow temperature curve
-		TemperatureSensorMAC string  `yaml:"temperature_sensor_mac"`
+		Power             int     `yaml:"power"`        // boiler power in kwh
+		MinRunTime        float64 `yaml:"min_run_time"` // minimum boiler run time in minutes
+		MaxRunTime        float64 `yaml:"max_run_time"` // maximum boiler run time in minutes
+		Loss3             int     `yaml:"loss3"`        // heatloss at -3C
+		Loss7             int     `yaml:"loss7"`        // heatloss at 7C
+		InternalSensorMAC string  `yaml:"internal_sensor_mac"`
+		ExternalSensorMAC string  `yaml:"external_sensor_mac"`
 	}
 }
 

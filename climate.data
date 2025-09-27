@@ -1,0 +1,8 @@
+{
+  "mode": "off",
+  "target_temperature": 20.5,
+  "hw_target_temp": 39,
+  "inside_temp": 20.3,
+  "outside_temp": -3,
+  "last_active": ""
+}

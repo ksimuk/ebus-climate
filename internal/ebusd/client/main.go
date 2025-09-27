@@ -14,12 +14,14 @@ import (
 type Circuit string
 
 type Client struct {
-	config *config.Config
+	config     *config.Config
+	parameters []string
 }
 
-func New(config *config.Config) *Client {
+func New(config *config.Config, readParameters []string) *Client {
 	return &Client{
-		config: config,
+		config:     config,
+		parameters: readParameters,
 	}
 }
 
@@ -68,7 +70,7 @@ func (c Client) read(parameter string, force bool) ([]string, error) {
 	if force {
 		args = " -f"
 	}
-	request := fmt.Sprintf("read -c bai %s%s\n", parameter, args)
+	request := fmt.Sprintf("read -c %s %s%s\n", c.config.Ebus.Circuit, parameter, args)
 
 	reply, err := c.request(request)
 
@@ -91,11 +93,12 @@ func (c Client) Info() ([]string, error) {
 }
 
 func (c Client) write(parameter string, value string) error {
-	request := fmt.Sprintf("write %s %s\n", parameter, value)
-	_, err := c.request(request)
+	request := fmt.Sprintf("write -c %s %s %s\n", c.config.Ebus.Circuit, parameter, value)
+	res, err := c.request(request)
 	if err != nil {
 		return err
 	}
+	log.Debug().Interface("result", res).Msgf("%s result %s", request, res)
 	return nil
 }
 
@@ -105,6 +108,31 @@ func (c Client) Get(parameter string) ([]string, error) {
 
 func (c Client) Set(parameter string, value string) error {
 	return c.write(parameter, value)
+}
+
+func (c Client) ReadAll() map[string]string {
+	result := make(map[string]string)
+	for _, param := range c.parameters {
+		res, err := c.read(param, false)
+		if err != nil {
+			log.Error().Err(err).Msgf("Failed to read parameter %s", param)
+			continue
+		}
+		result[param] = res[0]
+	}
+	return result
+}
+
+func (c Client) State() string {
+	request := "state\n"
+	reply, err := c.request(request)
+	if err != nil {
+		return "unknown"
+	}
+	if len(reply) > 0 {
+		return strings.TrimSpace(reply[0])
+	}
+	return "unknown"
 }
 
 func checkEbusError(reply string) error {

@@ -4,9 +4,12 @@ climate:
   power: 7000
   min_run_time: 5
   max_run_time: 20
-  flow_curve: "linear"
-  temperature_sensor_mac: "00:11:22:33:44:55"
+  loss3: 3100 # heatloss at -3C
+  loss7: 1300 # heatloss at 7C
+  internal_sensor_mac: "A4:C1:38:5C:18:A5"
+  external_sensor_mac: "A4:C1:38:D1:64:5F"
 
 ebus:
   host: "192.168.175.93"
   port: 8888
+  circuit: "bai"
