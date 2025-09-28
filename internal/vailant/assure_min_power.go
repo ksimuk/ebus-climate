@@ -39,5 +39,5 @@ func (c *eBusClimate) onReturnTemperatureChange() {
 	// 	c.desiredTemp = newTemp
 	// c.pingHeating()
 	// }
-	log.Info().Msgf("Desired Flow:  %d, return %f, flow %f", c.desiredTemp, c.returnTemp, c.flowTemp)
+	log.Info().Msgf("Desired Flow:  %d, return %f, flow %f", c.desiredFlowTemp, c.returnTemp, c.flowTemp)
 }

@@ -26,8 +26,8 @@ func New(config *config.Config, readParameters []string) *Client {
 }
 
 func (c Client) request(request string) ([]string, error) {
-	log.Debug().Msgf("Connecting to ebusd at %s:%d", c.config.Ebus.Host, c.config.Ebus.Port)
-	connection, err := net.Dial("tcp", fmt.Sprintf("%s:%d", c.config.Ebus.Host, c.config.Ebus.Port))
+	log.Debug().Msgf("Connecting to ebusd at %s port %s", c.config.Ebus.Host, c.config.Ebus.Port)
+	connection, err := net.Dial("tcp", net.JoinHostPort(c.config.Ebus.Host, c.config.Ebus.Port))
 	if err != nil {
 		return nil, err
 	}

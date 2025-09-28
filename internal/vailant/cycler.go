@@ -2,12 +2,15 @@
 package vailant
 
 import (
+	"math"
 	"time"
 
 	"github.com/rs/zerolog/log"
 )
 
 const CYCLE_CHECK_INTERVAL = 1
+const BASE_TEMP = 20.0
+const ADJUSTMENT_THRESHOLD = 1.0 // only adjust if we are more than this far from target
 
 func (c *eBusClimate) startCycler() {
 	c.calculateLoss() // initial calculation
@@ -37,9 +40,30 @@ func (c *eBusClimate) calculateConsumption() {
 
 }
 
+// adjust temprature if we below or above the target
+// returns number of degrees to adjust current weather for heat loss calculation
+func (c *eBusClimate) adjustTemp() float64 {
+	insideTemp := c.state.InsideTemp
+	targetTemp := c.state.TargetTemperature
+
+	adjustment := targetTemp - insideTemp
+
+	// if we are more than 1 degree off, adjust for faster correction
+	if math.Abs(adjustment) >= ADJUSTMENT_THRESHOLD {
+		// square the adjustment to make it non-linear
+		return math.Abs(adjustment) * adjustment
+	}
+	return 0
+}
+
 func (c *eBusClimate) getMinuteLoss() float64 {
 	// TODO adjust based on inside target temp
 	current_weather := c.state.OutsideTemp
+
+	// reduce loss if target temp is lower than base temperature (we are in setback)
+	current_weather += BASE_TEMP - c.state.TargetTemperature
+	// adjust loss based on how far we are from target temp
+	current_weather += c.adjustTemp()
 
 	loss3 := c.loss3
 	loss7 := c.loss7
@@ -48,7 +72,7 @@ func (c *eBusClimate) getMinuteLoss() float64 {
 	if currentLossW < 0 {
 		currentLossW = 0
 	}
-	return float64(currentLossW) / 60 // per minute
+	return currentLossW / 60 // per minute
 }
 
 func (c *eBusClimate) calculateLoss() {

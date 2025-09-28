@@ -32,10 +32,10 @@ type eBusClimate struct {
 
 	stopChan chan struct{}
 
-	internal_temp  float64
-	external_temp  float64
-	desiredTemp    int
-	modulationTemp int
+	internal_temp   float64
+	external_temp   float64
+	desiredFlowTemp int
+	modulationTemp  int
 
 	flowTemp   float64
 	returnTemp float64
@@ -62,15 +62,15 @@ func New(config *config.Config) *eBusClimate {
 	ebusClient := client.New(config, READ_PARAMETERS)
 
 	c := eBusClimate{
-		ebusClient:    ebusClient,
-		stopChan:      make(chan struct{}),
-		stateStore:    climate.NewClimateStore(),
-		loss3:         config.Climate.Loss3,
-		loss7:         config.Climate.Loss7,
-		power:         config.Climate.Power,
-		heatingActive: false,
-		heatingRelay:  rpi.P1_31,
-		desiredTemp:   DESIRED_FLOW_TEMPERATURE,
+		ebusClient:      ebusClient,
+		stopChan:        make(chan struct{}),
+		stateStore:      climate.NewClimateStore(),
+		loss3:           config.Climate.Loss3,
+		loss7:           config.Climate.Loss7,
+		power:           config.Climate.Power,
+		heatingActive:   false,
+		heatingRelay:    rpi.P1_31,
+		desiredFlowTemp: DESIRED_FLOW_TEMPERATURE,
 		// internal:   addThermometer(config.Climate.InternalSensorMAC),
 		// external:   addThermometer(config.Climate.ExternalSensorMAC),
 	}
@@ -183,7 +183,7 @@ func (c *eBusClimate) GetReturnTemp() float64 {
 }
 
 func (c *eBusClimate) GetDesiredFlowTemp() int {
-	return c.desiredTemp
+	return c.desiredFlowTemp
 }
 
 func (c *eBusClimate) GetPower() int {
@@ -273,7 +273,7 @@ func (c *eBusClimate) pingHeating() {
 	// remoteControlHcPump
 	// releaseBackup
 	// releaseCooling
-	command := fmt.Sprintf("%s;%d;%d;-;-;0;0;0;-;0;0;0", mode, c.desiredTemp, c.state.HWTargetTemp)
+	command := fmt.Sprintf("%s;%d;%d;-;-;0;0;0;-;0;0;0", mode, c.desiredFlowTemp, c.state.HWTargetTemp)
 	log.Debug().Msgf("Heating string: %s", command)
 	c.ebusClient.Set("SetModeOverride", command)
 }

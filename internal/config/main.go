@@ -10,7 +10,7 @@ import (
 type Config struct {
 	Ebus struct {
 		Host    string `yaml:"host"`
-		Port    int    `yaml:"port"`
+		Port    string `yaml:"port"`
 		Circuit string `yaml:"circuit"`
 	} `yaml:"ebus"`
 
