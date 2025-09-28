@@ -42,6 +42,7 @@ func (c *eBusClimate) calculateConsumption() {
 
 // adjust temprature if we below or above the target
 // returns number of degrees to adjust current weather for heat loss calculation
+// negative means we are above target, positive means we are below target
 func (c *eBusClimate) adjustTemp() float64 {
 	insideTemp := c.state.InsideTemp
 	targetTemp := c.state.TargetTemperature
