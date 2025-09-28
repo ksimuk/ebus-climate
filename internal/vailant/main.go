@@ -16,6 +16,8 @@ import (
 
 const POOLING_INTERVAL = time.Second * 60
 
+const DESIRED_FLOW_TEMPERATURE = 55 // max temp for flow
+
 var READ_PARAMETERS = []string{
 	"FlowTemp",
 	"ReturnTemp",
@@ -68,6 +70,7 @@ func New(config *config.Config) *eBusClimate {
 		power:         config.Climate.Power,
 		heatingActive: false,
 		heatingRelay:  rpi.P1_31,
+		desiredTemp:   DESIRED_FLOW_TEMPERATURE,
 		// internal:   addThermometer(config.Climate.InternalSensorMAC),
 		// external:   addThermometer(config.Climate.ExternalSensorMAC),
 	}

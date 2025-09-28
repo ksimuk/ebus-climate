@@ -21,9 +21,6 @@ func (c *eBusClimate) onChange(newValues map[string]string) {
 		case "FlowTemp":
 			value := getFloat(value)
 			c.flowTemp = value
-		case "FlowTempDesired":
-			// parse int
-			c.desiredTemp = int(getFloat(value))
 		case "ModulationTempDesired":
 			// parse int
 			c.modulationTemp = int(getFloat(value))

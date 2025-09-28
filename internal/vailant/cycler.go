@@ -7,11 +7,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const CYCLE_CHECK_INTERVAL = 1
+
 func (c *eBusClimate) startCycler() {
 	c.calculateLoss() // initial calculation
 	// launch cycler goroutine every minute
 	go func() {
-		ticker := time.NewTicker(time.Minute)
+		ticker := time.NewTicker(time.Minute * CYCLE_CHECK_INTERVAL)
 		defer ticker.Stop()
 		for {
 			select {
@@ -29,7 +31,7 @@ func (c *eBusClimate) startCycler() {
 
 func (c *eBusClimate) calculateConsumption() {
 	if c.IsGasActive() {
-		c.state.ConsumptionHeating += float64(c.power) / 60 / 1000 // per minute kWh
+		c.state.ConsumptionHeating += float64(c.power) * CYCLE_CHECK_INTERVAL / 60 / 1000 // per minute kWh
 	}
 	c.stateStore.Save(c.state) // save state with new consumption and heat loss
 
