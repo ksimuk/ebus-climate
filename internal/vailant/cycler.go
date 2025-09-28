@@ -63,7 +63,7 @@ func (c *eBusClimate) getMinuteLoss() float64 {
 	// reduce loss if target temp is lower than base temperature (we are in setback)
 	current_weather += BASE_TEMP - c.state.TargetTemperature
 	// adjust loss based on how far we are from target temp
-	current_weather += c.adjustTemp()
+	current_weather -= c.adjustTemp()
 
 	loss3 := c.loss3
 	loss7 := c.loss7

@@ -32,8 +32,6 @@ type eBusClimate struct {
 
 	stopChan chan struct{}
 
-	internal_temp   float64
-	external_temp   float64
 	desiredFlowTemp int
 	modulationTemp  int
 
