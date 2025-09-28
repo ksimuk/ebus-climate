@@ -10,7 +10,7 @@ import (
 
 const CYCLE_CHECK_INTERVAL = 1
 const BASE_TEMP = 20.0
-const ADJUSTMENT_THRESHOLD = 1.0 // only adjust if we are more than this far from target
+const ADJUSTMENT_THRESHOLD = 0.5 // only adjust if we are more than this far from target
 
 func (c *eBusClimate) startCycler() {
 	c.calculateLoss() // initial calculation
