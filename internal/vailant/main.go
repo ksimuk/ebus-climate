@@ -18,6 +18,9 @@ const POOLING_INTERVAL = time.Second * 60
 
 const DESIRED_FLOW_TEMPERATURE = 55 // max temp for flow
 
+const MODE_HEATING = "heating"
+const MODE_OFF = "off"
+
 var READ_PARAMETERS = []string{
 	"FlowTemp",
 	"ReturnTemp",
@@ -45,6 +48,8 @@ type eBusClimate struct {
 	heatingActive bool
 
 	heatingRelay gpio.PinIO
+
+	zeroLossTimer *time.Ticker
 
 	// TODO independant thermometers
 	// external      *bluetooththermostat.BluetoothThermostat
@@ -222,8 +227,15 @@ func (c *eBusClimate) SetHWTargetTemp(temp int) error {
 }
 
 func (c *eBusClimate) SetMode(mode string) error {
-	if mode != "off" && mode != "heating" {
+	if mode != MODE_OFF && mode != MODE_HEATING {
 		return errors.New("invalid mode")
+	}
+	if mode == MODE_OFF && c.state.Mode != MODE_OFF {
+		c.StopHeating()
+	}
+	if mode == MODE_HEATING && c.state.Mode == MODE_OFF {
+		// reset loss when turning on heating
+		c.state.HeatLoss = 0
 	}
 	c.state.Mode = mode
 	c.stateStore.Save(c.state)
@@ -237,6 +249,10 @@ func (c *eBusClimate) SetTargetTemperature(temp float64) error {
 }
 
 func (c *eBusClimate) StartHeating() {
+	if c.state.Mode != MODE_HEATING {
+		// heating is off
+		return
+	}
 	c.heatingActive = true
 	log.Debug().Msg("Starting heating")
 	if err := c.heatingRelay.Out(gpio.High); err != nil {
@@ -253,10 +269,6 @@ func (c *eBusClimate) StopHeating() {
 }
 
 func (c *eBusClimate) pingHeating() {
-	mode := "0"
-	if c.heatingActive {
-		mode = "0"
-	}
 
 	//SetModeOverride,
 	// hcmode
@@ -271,7 +283,6 @@ func (c *eBusClimate) pingHeating() {
 	// remoteControlHcPump
 	// releaseBackup
 	// releaseCooling
-	command := fmt.Sprintf("%s;%d;%d;-;-;0;0;0;-;0;0;0", mode, c.desiredFlowTemp, c.state.HWTargetTemp)
-	log.Debug().Msgf("Heating string: %s", command)
+	command := fmt.Sprintf("0;%d;%d;-;-;0;0;0;-;0;0;0", c.desiredFlowTemp, c.state.HWTargetTemp)
 	c.ebusClient.Set("SetModeOverride", command)
 }
