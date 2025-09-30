@@ -51,18 +51,17 @@ type Get struct {
 	Error              string  `json:"error"`
 }
 
-func Start(config config.Config) {
-	println("Starting web server on port", config.WebPort)
+func GetServer(config config.Config) Server {
 	climate := vailant.New(&config) // TODO: make load boiler type from config when change boiler
 	server := Server{
 		config:  config,
 		climate: climate,
 	}
-	server.start()
+	return server
 }
 
-func (s *Server) start() {
-	log.Info().Msg("Starting web server...")
+func (s *Server) Start() {
+	log.Info().Msgf("Starting web server on port %d...", s.config.WebPort)
 	http.HandleFunc("/set", s.handleSet)
 	http.HandleFunc("/get", s.handleGet)
 
@@ -198,4 +197,8 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (s *Server) Shutdown() {
+	s.climate.Shutdown()
 }

@@ -29,6 +29,7 @@ type Climate interface {
 	StopHeating()
 
 	GetConsumption() float64
+	Shutdown()
 }
 
 type BoilerInfo struct {

@@ -27,6 +27,7 @@ type ClimateState struct {
 type ClimateStateStore interface {
 	Load() (*ClimateState, error)
 	Save(state *ClimateState) error
+	SaveNow(state *ClimateState) error
 }
 
 type FileClimateStore struct {
@@ -72,17 +73,8 @@ func (s *FileClimateStore) Save(state *ClimateState) error {
 	}
 
 	s.timer = time.AfterFunc(saveDelay, func() {
-		s.mu.Lock()
-		defer s.mu.Unlock()
 		if s.pendingState != nil {
-			log.Debug().Msg("Saving pending climate state to file")
-			file, err := os.Create(s.filePath)
-			if err == nil {
-				encoder := json.NewEncoder(file)
-				encoder.SetIndent("", "  ")
-				_ = encoder.Encode(s.pendingState)
-				file.Close()
-			}
+			s.SaveNow(s.pendingState)
 			s.pendingState = nil
 		}
 		s.timer.Stop()
@@ -90,4 +82,19 @@ func (s *FileClimateStore) Save(state *ClimateState) error {
 	})
 
 	return nil
+}
+
+func (s *FileClimateStore) SaveNow(state *ClimateState) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	log.Debug().Msg("Saving climate state to file")
+	file, err := os.Create(s.filePath)
+	if err == nil {
+		encoder := json.NewEncoder(file)
+		encoder.SetIndent("", "  ")
+		_ = encoder.Encode(s.pendingState)
+		file.Close()
+	}
+	return err
 }

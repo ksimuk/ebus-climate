@@ -286,3 +286,8 @@ func (c *eBusClimate) pingHeating() {
 	command := fmt.Sprintf("0;%d;%d;-;-;0;0;0;-;0;0;0", c.desiredFlowTemp, c.state.HWTargetTemp)
 	c.ebusClient.Set("SetModeOverride", command)
 }
+
+func (c *eBusClimate) Shutdown() {
+	c.StopPolling()
+	c.stateStore.SaveNow(c.state)
+}
