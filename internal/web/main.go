@@ -24,6 +24,7 @@ type Set struct {
 }
 
 type Get struct {
+	Name string `json:"name"`
 	// set parameters
 	Mode              string  `json:"mode"` // off, heating
 	TargetTemperature float64 `json:"target_temperature"`
@@ -67,33 +68,63 @@ func (s *Server) start() {
 
 	// Override endpoints for temperature sensors
 	http.HandleFunc("/override", s.handleOverride)
+	http.HandleFunc("/check", func(w http.ResponseWriter, r *http.Request) {
+		// todo authentication check
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
+
+	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
 
 	log.Fatal().Err(http.ListenAndServe(fmt.Sprintf(":%d", s.config.WebPort), nil)).Msg("Web server stopped")
 }
 
 func (s *Server) handleSet(w http.ResponseWriter, r *http.Request) {
 	var state Set
+
 	if err := json.NewDecoder(r.Body).Decode(&state); err != nil {
 		log.Error().Err(err).Msg("Failed to decode request body")
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	if err := s.climate.SetMode(state.Mode); err != nil {
-		log.Error().Err(err).Msgf("Failed to set mode to %s", state.Mode)
-		http.Error(w, "Failed to set mode", http.StatusInternalServerError)
-		return
+
+	log.Debug().Msgf("Received set request: %+v", state)
+
+	if state.Mode != "" {
+		log.Info().Msgf("Setting mode to %s", state.Mode)
+		if err := s.climate.SetMode(state.Mode); err != nil {
+			log.Error().Err(err).Msgf("Failed to set mode to %s", state.Mode)
+			http.Error(w, "Failed to set mode", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		log.Debug().Msgf("Mode not set")
 	}
-	if err := s.climate.SetTargetTemperature(state.TargetTemperature); err != nil {
-		log.Error().Err(err).Msgf("Failed to set target temperature to %f", state.TargetTemperature)
-		http.Error(w, "Failed to set target temperature", http.StatusInternalServerError)
-		return
+
+	if state.TargetTemperature > 0 {
+		log.Info().Msgf("Setting target temperature to %f", state.TargetTemperature)
+		if err := s.climate.SetTargetTemperature(state.TargetTemperature); err != nil {
+			log.Error().Err(err).Msgf("Failed to set target temperature to %f", state.TargetTemperature)
+			http.Error(w, "Failed to set target temperature", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		log.Debug().Msgf("Target temperature not set")
 	}
-	if err := s.climate.SetHWTargetTemp(state.HWTargetTemp); err != nil {
-		log.Error().Err(err).Msgf("Failed to set hot water target temperature to %d", state.HWTargetTemp)
-		http.Error(w, "Failed to set hot water target temperature", http.StatusInternalServerError)
-		return
+
+	if state.HWTargetTemp > 0 {
+		log.Info().Msgf("Setting hot water target temperature to %d", state.HWTargetTemp)
+		if err := s.climate.SetHWTargetTemp(state.HWTargetTemp); err != nil {
+			log.Error().Err(err).Msgf("Failed to set hot water target temperature to %d", state.HWTargetTemp)
+			http.Error(w, "Failed to set hot water target temperature", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		log.Debug().Msgf("Hot water target temperature not set")
 	}
-	log.Info().Msgf("Set mode to %s, target temperature to %f, hot water target temperature to %d", state.Mode, state.TargetTemperature, state.HWTargetTemp)
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -136,7 +167,11 @@ func (s *Server) handleOverride(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
+	if s.config.Name == "" {
+		s.config.Name = "Glow Worm Ultimate 3 35C"
+	}
 	state := Get{
+		Name:              s.config.Name,
 		Mode:              s.climate.GetMode(),
 		TargetTemperature: s.climate.GetTargetTemperature(),
 		HWTargetTemp:      s.climate.GetHWTargetTemp(),

@@ -8,6 +8,7 @@ import (
 )
 
 type Config struct {
+	Name string `yaml:"name"`
 	Ebus struct {
 		Host    string `yaml:"host"`
 		Port    string `yaml:"port"`
