@@ -21,6 +21,9 @@ const DESIRED_FLOW_TEMPERATURE = 55 // max temp for flow
 const MODE_HEATING = "heating"
 const MODE_OFF = "off"
 
+// TODO  export statistics
+const PER_KWH_ADJUSTMENT = 121032.826 // adjust  Glow Worm counter to kWh
+
 var READ_PARAMETERS = []string{
 	"FlowTemp",
 	"ReturnTemp",

@@ -70,7 +70,7 @@ func (c Client) read(parameter string, force bool) ([]string, error) {
 	if force {
 		args = " -f"
 	}
-	request := fmt.Sprintf("read -c %s %s%s\n", c.config.Ebus.Circuit, parameter, args)
+	request := fmt.Sprintf("read -c %s -m 60 %s%s\n", c.config.Ebus.Circuit, parameter, args)
 
 	reply, err := c.request(request)
 

@@ -90,11 +90,13 @@ func (s *FileClimateStore) SaveNow(state *ClimateState) error {
 
 	log.Debug().Msg("Saving climate state to file")
 	file, err := os.Create(s.filePath)
-	if err == nil {
-		encoder := json.NewEncoder(file)
-		encoder.SetIndent("", "  ")
-		_ = encoder.Encode(s.pendingState)
-		file.Close()
+	if err != nil {
+		return err
 	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	err = encoder.Encode(state)
 	return err
 }
