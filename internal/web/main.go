@@ -31,8 +31,9 @@ type Get struct {
 	HWTargetTemp      int     `json:"hw_target_temp"`
 
 	// info from  climate
-	OutsideTemp float64 `json:"outside_temp"`
-	InsideTemp  float64 `json:"inside_temp"`
+	OutsideTemp     float64 `json:"outside_temp"`
+	InsideTemp      float64 `json:"inside_temp"`
+	HeatLossBalance float64 `json:"heat_loss_balance"`
 
 	FlowTemp        float64 `json:"flow_temp"`
 	ReturnTemp      float64 `json:"return_temp"`
@@ -189,6 +190,8 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
 		Connected:          s.climate.IsConnected(),
 		Error:              s.climate.GetError(),
 		ConsumptionHeating: s.climate.GetConsumption(),
+
+		HeatLossBalance: s.climate.GetHeatLossBalance(),
 	}
 
 	w.Header().Set("Content-Type", "application/json")

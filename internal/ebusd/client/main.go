@@ -26,14 +26,14 @@ func New(config *config.Config, readParameters []string) *Client {
 }
 
 func (c Client) request(request string) ([]string, error) {
-	log.Debug().Msgf("Connecting to ebusd at %s port %s", c.config.Ebus.Host, c.config.Ebus.Port)
+	log.Trace().Msgf("Connecting to ebusd at %s port %s", c.config.Ebus.Host, c.config.Ebus.Port)
 	connection, err := net.Dial("tcp", net.JoinHostPort(c.config.Ebus.Host, c.config.Ebus.Port))
 	if err != nil {
 		return nil, err
 	}
 	defer connection.Close()
 
-	log.Debug().Msgf("Sending request: %s", request)
+	log.Trace().Msgf("Sending request: %s", request)
 	_, err = connection.Write([]byte(request))
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (c Client) request(request string) ([]string, error) {
 			return nil, err
 		}
 	}
-	log.Debug().Interface("result", result).Msg("Received reply")
+	log.Trace().Interface("result", result).Msg("Received reply")
 	return result, nil
 }
 
@@ -77,7 +77,7 @@ func (c Client) read(parameter string, force bool) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Debug().Msgf("Received reply: %s", reply)
+	log.Trace().Msgf("Received reply: %s", reply)
 	return reply, nil
 
 }
@@ -88,7 +88,7 @@ func (c Client) Info() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Debug().Msgf("Received reply: %s", reply)
+	log.Trace().Msgf("Received reply: %s", reply)
 	return reply, nil
 }
 
@@ -98,7 +98,7 @@ func (c Client) write(parameter string, value string) error {
 	if err != nil {
 		return err
 	}
-	log.Debug().Interface("result", res).Msgf("%s result %s", request, res)
+	log.Trace().Interface("result", res).Msgf("%s result %s", request, res)
 	return nil
 }
 

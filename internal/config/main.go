@@ -1,9 +1,9 @@
 package config
 
 import (
-	"log"
 	"os"
 
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -25,6 +25,8 @@ type Config struct {
 		InternalSensorMAC string  `yaml:"internal_sensor_mac"`
 		ExternalSensorMAC string  `yaml:"external_sensor_mac"`
 	}
+
+	LogLevel string `yaml:"log_level"`
 }
 
 func Load(path string) (*Config, error) {
@@ -37,6 +39,6 @@ func Load(path string) (*Config, error) {
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, err
 	}
-	log.Printf("Loaded config: %+v\n", cfg)
+	log.Trace().Msgf("Loaded config from %s: %+v", path, cfg)
 	return &cfg, nil
 }

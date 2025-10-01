@@ -29,6 +29,7 @@ type Climate interface {
 	StopHeating()
 
 	GetConsumption() float64
+	GetHeatLossBalance() float64
 	Shutdown()
 }
 

@@ -5,11 +5,6 @@ import (
 	"strings"
 )
 
-func (c *eBusClimate) sendBoilerState() {
-	// send state to the boiler
-
-}
-
 func (c *eBusClimate) onChange(newValues map[string]string) {
 	// handles loading updates from boiler
 	for key, value := range newValues {

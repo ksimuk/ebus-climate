@@ -291,3 +291,7 @@ func (c *eBusClimate) Shutdown() {
 	c.StopPolling()
 	c.stateStore.SaveNow(c.state)
 }
+
+func (c *eBusClimate) GetHeatLossBalance() float64 {
+	return c.state.HeatLoss
+}
