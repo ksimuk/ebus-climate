@@ -23,8 +23,13 @@ type Set struct {
 	HWTargetTemp      int     `json:"hw_target_temp"`
 }
 
+type Boiler struct {
+	Name     string `json:"name"`
+	Model    string `json:"model"`
+	Firmware string `json:"firmware"`
+}
+
 type Get struct {
-	Name string `json:"name"`
 	// set parameters
 	Mode              string  `json:"mode"` // off, heating
 	TargetTemperature float64 `json:"target_temperature"`
@@ -40,12 +45,11 @@ type Get struct {
 	DesiredFlowTemp int     `json:"desired_flow_temp"`
 	Power           int     `json:"power"`
 
-	GasActive  bool `json:"gas_active"`
-	PumpActive bool `json:"pump_active"`
-	Boiler     struct {
-		Model    string `json:"model"`
-		Firmware string `json:"firmware"`
-	} `json:"boiler"`
+	GasActive  bool   `json:"gas_active"`
+	PumpActive bool   `json:"pump_active"`
+	Boiler     Boiler `json:"boiler"`
+
+	Stat climate.Stat `json:"stat"`
 
 	ConsumptionHeating float64 `json:"consumption_heating"` // total consumption for heating in kWh
 	Connected          bool    `json:"connected"`
@@ -171,10 +175,13 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
 		s.config.Name = "Glow Worm Ultimate 3 35C"
 	}
 	state := Get{
-		Name:              s.config.Name,
 		Mode:              s.climate.GetMode(),
 		TargetTemperature: s.climate.GetTargetTemperature(),
 		HWTargetTemp:      s.climate.GetHWTargetTemp(),
+
+		Boiler: Boiler{
+			Name: s.config.Name,
+		},
 
 		InsideTemp:  s.climate.GetInsideTemp(),
 		OutsideTemp: s.climate.GetOutsideTemp(),
@@ -192,6 +199,7 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
 		ConsumptionHeating: s.climate.GetConsumption(),
 
 		HeatLossBalance: s.climate.GetHeatLossBalance(),
+		Stat:            s.climate.GetStat(),
 	}
 
 	w.Header().Set("Content-Type", "application/json")

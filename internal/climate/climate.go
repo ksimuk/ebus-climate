@@ -31,6 +31,7 @@ type Climate interface {
 	GetConsumption() float64
 	GetHeatLossBalance() float64
 	Shutdown()
+	GetStat() Stat
 }
 
 type BoilerInfo struct {

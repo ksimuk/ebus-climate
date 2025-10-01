@@ -29,6 +29,8 @@ var READ_PARAMETERS = []string{
 	"ReturnTemp",
 	"FlowTempDesired",
 	"ModulationTempDesired",
+	"PrEnergySumHwc1",
+	"PrEnergySumHc1",
 }
 
 type eBusClimate struct {
@@ -53,6 +55,7 @@ type eBusClimate struct {
 	heatingRelay gpio.PinIO
 
 	zeroLossTimer *time.Ticker
+	stat          climate.Stat
 
 	// TODO independant thermometers
 	// external      *bluetooththermostat.BluetoothThermostat
@@ -80,6 +83,8 @@ func New(config *config.Config) *eBusClimate {
 		// internal:   addThermometer(config.Climate.InternalSensorMAC),
 		// external:   addThermometer(config.Climate.ExternalSensorMAC),
 	}
+
+	c.stat = climate.Stat{}
 
 	c.state, _ = c.stateStore.Load()
 	lastActivity, err := time.Parse(time.RFC3339, c.state.LastActive)
@@ -297,4 +302,8 @@ func (c *eBusClimate) Shutdown() {
 
 func (c *eBusClimate) GetHeatLossBalance() float64 {
 	return c.state.HeatLoss
+}
+
+func (c *eBusClimate) GetStat() climate.Stat {
+	return c.stat
 }

@@ -19,6 +19,12 @@ func (c *eBusClimate) onChange(newValues map[string]string) {
 		case "ModulationTempDesired":
 			// parse int
 			c.modulationTemp = int(getFloat(value))
+		case "PrEnergySumHwc1":
+			// parse float
+			c.stat.UsageHotWater = getFloat(value) / PER_KWH_ADJUSTMENT
+		case "PrEnergySumHc1":
+			// parse float
+			c.stat.UsageHeating = getFloat(value) / PER_KWH_ADJUSTMENT
 		}
 	}
 	c.onReturnTemperatureChange()
