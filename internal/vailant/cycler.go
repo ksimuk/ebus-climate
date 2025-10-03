@@ -70,6 +70,7 @@ func (c *eBusClimate) getMinuteLoss() float64 {
 	loss7 := c.loss7
 
 	currentLossW := float64(loss3-loss7)/10*(7-current_weather) + float64(loss7)
+	c.stat.CurrentHeatLoss = currentLossW
 	if currentLossW < 0 {
 		if c.zeroLossTimer == nil {
 			c.zeroLossTimer = time.NewTicker(time.Hour)

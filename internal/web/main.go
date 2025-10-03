@@ -24,9 +24,11 @@ type Set struct {
 }
 
 type Boiler struct {
-	Name     string `json:"name"`
-	Model    string `json:"model"`
-	Firmware string `json:"firmware"`
+	Name      string `json:"name"`
+	Model     string `json:"model"`
+	Firmware  string `json:"firmware"`
+	Connected bool   `json:"connected"`
+	Error     string `json:"error"`
 }
 
 type Get struct {
@@ -50,10 +52,6 @@ type Get struct {
 	Boiler     Boiler `json:"boiler"`
 
 	Stat climate.Stat `json:"stat"`
-
-	ConsumptionHeating float64 `json:"consumption_heating"` // total consumption for heating in kWh
-	Connected          bool    `json:"connected"`
-	Error              string  `json:"error"`
 }
 
 func GetServer(config config.Config) Server {
@@ -180,7 +178,9 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
 		HWTargetTemp:      s.climate.GetHWTargetTemp(),
 
 		Boiler: Boiler{
-			Name: s.config.Name,
+			Name:      s.config.Name,
+			Connected: s.climate.IsConnected(),
+			Error:     s.climate.GetError(),
 		},
 
 		InsideTemp:  s.climate.GetInsideTemp(),
@@ -193,10 +193,6 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
 
 		GasActive:  s.climate.IsGasActive(),
 		PumpActive: s.climate.IsPumpActive(),
-
-		Connected:          s.climate.IsConnected(),
-		Error:              s.climate.GetError(),
-		ConsumptionHeating: s.climate.GetConsumption(),
 
 		HeatLossBalance: s.climate.GetHeatLossBalance(),
 		Stat:            s.climate.GetStat(),
