@@ -85,7 +85,12 @@ func New(config *config.Config) *eBusClimate {
 		// external:   addThermometer(config.Climate.ExternalSensorMAC),
 	}
 
-	c.stat = climate.Stat{}
+	c.stat = climate.Stat{
+		UsageHeating:    -1,
+		UsageHotWater:   -1,
+		CurrentHeatLoss: -1,
+		WaterPressure:   -1,
+	}
 
 	c.state, _ = c.stateStore.Load()
 	lastActivity, err := time.Parse(time.RFC3339, c.state.LastActive)
@@ -98,7 +103,7 @@ func New(config *config.Config) *eBusClimate {
 		if c.state.HeatLoss < 0 {
 			c.state.HeatLoss = -1
 		}
-		log.Info().Msgf("Estimated heat loss of %f kWh since last activity %v (%f minutes)", c.state.HeatLoss, lastActivity, minutes)
+		log.Info().Msgf("Estimated heat loss state of %f kWh since last activity %v (%f minutes)", c.state.HeatLoss, lastActivity, minutes)
 	}
 
 	c.StartPolling(POOLING_INTERVAL, c.readBoiler)

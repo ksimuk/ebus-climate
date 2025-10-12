@@ -12,6 +12,9 @@ const CYCLE_CHECK_INTERVAL = 1
 const BASE_TEMP = 20.0
 const ADJUSTMENT_THRESHOLD = 0.5 // only adjust if we are more than this far from target
 
+const MIN_RUNTIME = 10 // minimum runtime in minutes 10C
+const MAX_RUNTIME = 25 // maximum runtime in minutes -3C
+
 func (c *eBusClimate) startCycler() {
 	c.calculateLoss() // initial calculation
 	// launch cycler goroutine every minute
@@ -115,9 +118,20 @@ func (c *eBusClimate) calculateLoss() {
 	}
 }
 
+func (c *eBusClimate) getRuntime(OutsideTemp float64) int {
+	if OutsideTemp >= 10 {
+		return MIN_RUNTIME
+	}
+	if OutsideTemp <= -3 {
+		return MAX_RUNTIME
+	}
+	return MIN_RUNTIME + int((10-OutsideTemp)*float64(MAX_RUNTIME-MIN_RUNTIME)/13)
+}
+
 func (c *eBusClimate) runCycle() float64 {
 	// TODO calculate cycle length increase duration for lower temps
-	cycleLength := 10 // default to 10 minutes
+	cycleLength := c.getRuntime(c.state.OutsideTemp)
+	c.stat.Runtime = cycleLength
 	c.runFor(cycleLength)
 	return float64(c.power*cycleLength) / 60
 }
