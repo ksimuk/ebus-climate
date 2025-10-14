@@ -159,7 +159,7 @@ func (s *Server) handleOverride(w http.ResponseWriter, r *http.Request) {
 	switch forceHeating {
 	case "1":
 		log.Info().Msg("Forcing heating ON")
-		s.climate.StartHeating()
+		s.climate.OverrideHeating(600) // force heating for 10 minutes
 	case "0":
 		log.Info().Msg("Forcing heating OFF")
 		s.climate.StopHeating()

@@ -262,6 +262,13 @@ func (c *eBusClimate) SetTargetTemperature(temp float64) error {
 	return nil
 }
 
+func (c *eBusClimate) OverrideHeating(timeSeconds int) {
+	c.StartHeating()
+	time.AfterFunc(time.Duration(timeSeconds)*time.Second, func() {
+		c.StopHeating()
+	})
+}
+
 func (c *eBusClimate) StartHeating() {
 	if c.state.Mode != MODE_HEATING {
 		// heating is off

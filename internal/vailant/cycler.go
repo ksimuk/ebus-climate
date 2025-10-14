@@ -73,32 +73,6 @@ func (c *eBusClimate) getMinuteLoss() float64 {
 	loss7 := c.loss7
 
 	currentLossW := float64(loss3-loss7)/10*(7-current_weather) + float64(loss7)
-	c.stat.CurrentHeatLoss = currentLossW
-	if currentLossW < 0 {
-		if c.zeroLossTimer == nil {
-			c.zeroLossTimer = time.NewTicker(time.Hour)
-			go func() {
-				for {
-					select {
-					case <-c.zeroLossTimer.C:
-						c.zeroLossTimer.Stop()
-						c.zeroLossTimer = nil
-						c.state.HeatLoss = 1500.0 // reset to 1.5 kWh after an hour of zero loss
-						log.Info().Msgf("Resetting heat loss to %f kWh after an hour of zero loss", c.state.HeatLoss)
-						return
-					case <-c.stopChan:
-						return
-					}
-				}
-			}()
-		}
-		currentLossW = 0
-	} else {
-		if c.zeroLossTimer != nil {
-			c.zeroLossTimer.Stop()
-			c.zeroLossTimer = nil
-		}
-	}
 	return currentLossW / 60 // per minute
 }
 
@@ -109,7 +83,11 @@ func (c *eBusClimate) calculateLoss() {
 	}
 
 	currentLoss := c.getMinuteLoss()
+	c.stat.CurrentHeatLoss = currentLoss * 60 // in W
 	c.state.HeatLoss = c.state.HeatLoss - currentLoss
+	if c.state.HeatLoss > 1500 {
+		c.state.HeatLoss = 1500 // cap the loss to avoid extreme values
+	}
 	log.Debug().Msgf("heat loss balance %f, at temps %f, with loss %f", c.state.HeatLoss, c.state.OutsideTemp, currentLoss)
 
 	if c.state.HeatLoss < 0 {

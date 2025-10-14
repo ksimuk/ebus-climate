@@ -27,6 +27,7 @@ type Climate interface {
 	SetHWTargetTemp(temp int) error
 	StartHeating()
 	StopHeating()
+	OverrideHeating(timeSeconds int)
 
 	GetConsumption() float64
 	GetHeatLossBalance() float64
