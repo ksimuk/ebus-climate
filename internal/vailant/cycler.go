@@ -2,7 +2,6 @@
 package vailant
 
 import (
-	"math"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -11,6 +10,8 @@ import (
 const CYCLE_CHECK_INTERVAL = 1
 const BASE_TEMP = 20.0
 const ADJUSTMENT_THRESHOLD = 0.5 // only adjust if we are more than this far from target
+
+const ADJUSTMENT_RATE = 3
 
 const MIN_RUNTIME = 10 // minimum runtime in minutes 10C
 const MAX_RUNTIME = 25 // maximum runtime in minutes -3C
@@ -52,12 +53,7 @@ func (c *eBusClimate) adjustTemp() float64 {
 
 	adjustment := targetTemp - insideTemp
 
-	// if we are more than 1 degree off, adjust for faster correction
-	if math.Abs(adjustment) >= ADJUSTMENT_THRESHOLD {
-		// square the adjustment to make it non-linear
-		return math.Abs(adjustment) * adjustment
-	}
-	return 0
+	return adjustment * ADJUSTMENT_RATE
 }
 
 func (c *eBusClimate) getMinuteLoss() float64 {

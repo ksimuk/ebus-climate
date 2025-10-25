@@ -6,4 +6,5 @@ type Stat struct {
 	CurrentHeatLoss float64 `json:"current_heat_loss"` // current heat loss in W
 	WaterPressure   float64 `json:"water_pressure"`    // current water pressure in bar
 	Runtime         int     `json:"runtime"`           // current runtime in minutes
+	HwcDemand       string  `json:"hwc_demand"`        // hot water demand status
 }

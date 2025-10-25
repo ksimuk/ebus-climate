@@ -28,6 +28,8 @@ func (c *eBusClimate) onChange(newValues map[string]string) {
 		case "WaterPressure":
 			// parse float
 			c.stat.WaterPressure = getFloat(value)
+		case "HwcDemand":
+			c.stat.HwcDemand = value
 
 		}
 	}

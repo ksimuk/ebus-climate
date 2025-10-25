@@ -32,6 +32,7 @@ var READ_PARAMETERS = []string{
 	"PrEnergySumHwc1",
 	"PrEnergySumHc1",
 	"WaterPressure",
+	"HwcDemand",
 }
 
 type eBusClimate struct {
