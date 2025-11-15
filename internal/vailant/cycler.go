@@ -16,6 +16,10 @@ const ADJUSTMENT_RATE = 3
 const MIN_RUNTIME = 10 // minimum runtime in minutes 10C
 const MAX_RUNTIME = 25 // maximum runtime in minutes -3C
 
+func (c *eBusClimate) isHwcDemandActive() bool {
+	return c.stat.HwcDemand == "on" || c.stat.HwcDemand == "yes" || c.stat.HwcDemand == "1" || c.stat.HwcDemand == "true"
+}
+
 func (c *eBusClimate) startCycler() {
 	c.calculateLoss() // initial calculation
 	// launch cycler goroutine every minute
@@ -111,11 +115,39 @@ func (c *eBusClimate) runCycle() float64 {
 }
 
 func (c *eBusClimate) runFor(minutes int) {
-	log.Info().Msgf("Start heating cycle for %d minutes", minutes)
+	<-c.heatingTimerMutex // acquire lock
+	defer func() { c.heatingTimerMutex <- struct{}{} }() // release lock
+	
+	if c.heatingActive {
+		// Heating is already active, add minutes to existing cycle
+		c.heatingEndTime = c.heatingEndTime.Add(time.Duration(minutes) * time.Minute)
+		log.Info().Msgf("Extending heating cycle by %d minutes, new end time: %s", minutes, c.heatingEndTime.Format("15:04:05"))
+		return
+	}
+	
+	// Start new heating cycle
+	c.heatingEndTime = time.Now().Add(time.Duration(minutes) * time.Minute)
+	log.Info().Msgf("Start heating cycle for %d minutes (until %s)", minutes, c.heatingEndTime.Format("15:04:05"))
+	
 	go func() {
 		c.StartHeating()
-		time.AfterFunc(time.Duration(minutes)*time.Minute, func() {
-			c.StopHeating()
-		})
+		
+		ticker := time.NewTicker(time.Minute)
+		defer ticker.Stop()
+		
+		for range ticker.C {
+			// Check if HwcDemand is active and extend by 1 minute
+			if c.isHwcDemandActive() {
+				<-c.heatingTimerMutex
+				c.heatingEndTime = c.heatingEndTime.Add(time.Minute)
+				c.heatingTimerMutex <- struct{}{}
+				log.Info().Msgf("HwcDemand active during heating - extending cycle by 1 minute (until %s)", c.heatingEndTime.Format("15:04:05"))
+			}
+			
+			if time.Now().After(c.heatingEndTime) || time.Now().Equal(c.heatingEndTime) {
+				c.StopHeating()
+				return
+			}
+		}
 	}()
 }

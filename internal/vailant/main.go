@@ -56,8 +56,9 @@ type eBusClimate struct {
 
 	heatingRelay gpio.PinIO
 
-	zeroLossTimer *time.Ticker
-	stat          climate.Stat
+	stat              climate.Stat
+	heatingEndTime    time.Time
+	heatingTimerMutex chan struct{}
 
 	// TODO independant thermometers
 	// external      *bluetooththermostat.BluetoothThermostat
@@ -73,18 +74,20 @@ func New(config *config.Config) *eBusClimate {
 	ebusClient := client.New(config, READ_PARAMETERS)
 
 	c := eBusClimate{
-		ebusClient:      ebusClient,
-		stopChan:        make(chan struct{}),
-		stateStore:      climate.NewClimateStore(),
-		loss3:           config.Climate.Loss3,
-		loss7:           config.Climate.Loss7,
-		power:           config.Climate.Power,
-		heatingActive:   false,
-		heatingRelay:    rpi.P1_31,
-		desiredFlowTemp: DESIRED_FLOW_TEMPERATURE,
+		ebusClient:        ebusClient,
+		stopChan:          make(chan struct{}),
+		stateStore:        climate.NewClimateStore(),
+		loss3:             config.Climate.Loss3,
+		loss7:             config.Climate.Loss7,
+		power:             config.Climate.Power,
+		heatingActive:     false,
+		heatingRelay:      rpi.P1_31,
+		desiredFlowTemp:   DESIRED_FLOW_TEMPERATURE,
+		heatingTimerMutex: make(chan struct{}, 1),
 		// internal:   addThermometer(config.Climate.InternalSensorMAC),
 		// external:   addThermometer(config.Climate.ExternalSensorMAC),
 	}
+	c.heatingTimerMutex <- struct{}{} // initialize mutex
 
 	c.stat = climate.Stat{
 		UsageHeating:    -1,
@@ -319,5 +322,15 @@ func (c *eBusClimate) GetHeatLossBalance() float64 {
 }
 
 func (c *eBusClimate) GetStat() climate.Stat {
-	return c.stat
+	<-c.heatingTimerMutex
+	endTime := c.heatingEndTime
+	c.heatingTimerMutex <- struct{}{}
+	
+	stat := c.stat
+	if c.heatingActive {
+		stat.HeatingEndTime = endTime.Format("2006-01-02T15:04:05Z07:00")
+	} else {
+		stat.HeatingEndTime = ""
+	}
+	return stat
 }
