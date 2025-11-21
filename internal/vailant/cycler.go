@@ -13,8 +13,8 @@ const ADJUSTMENT_THRESHOLD = 0.5 // only adjust if we are more than this far fro
 
 const ADJUSTMENT_RATE = 3
 
-const MIN_RUNTIME = 15 // minimum runtime in minutes 10C
-const MAX_RUNTIME = 30 // maximum runtime in minutes -3C
+const MIN_RUNTIME = 10 // minimum runtime in minutes 10C
+const MAX_RUNTIME = 25 // maximum runtime in minutes -3C
 
 func (c *eBusClimate) isHwcDemandActive() bool {
 	return c.stat.HwcDemand == "on" || c.stat.HwcDemand == "yes" || c.stat.HwcDemand == "1" || c.stat.HwcDemand == "true"
