@@ -84,9 +84,8 @@ func (c *eBusClimate) calculateLoss() {
 
 	currentLoss := c.getMinuteLoss()
 	c.stat.CurrentHeatLoss = currentLoss * 60 // in W
-	c.state.HeatLoss = c.state.HeatLoss - currentLoss
-	if c.state.HeatLoss > 1500 {
-		c.state.HeatLoss = 1500 // cap the loss to avoid extreme values
+	if !(currentLoss < 0 && c.state.HeatLoss > 2000) {
+		c.state.HeatLoss = c.state.HeatLoss - currentLoss
 	}
 	log.Debug().Msgf("heat loss balance %f, at temps %f, with loss %f", c.state.HeatLoss, c.state.OutsideTemp, currentLoss)
 
