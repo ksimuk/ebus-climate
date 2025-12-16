@@ -48,9 +48,10 @@ type eBusClimate struct {
 	flowTemp   float64
 	returnTemp float64
 
-	loss3 int
-	loss7 int
-	power int
+	loss3          int
+	loss7          int
+	power          int
+	adjustmentRate float64
 
 	heatingActive bool
 
@@ -80,6 +81,7 @@ func New(config *config.Config) *eBusClimate {
 		loss3:             config.Climate.Loss3,
 		loss7:             config.Climate.Loss7,
 		power:             config.Climate.Power,
+		adjustmentRate:    config.Climate.AdjustmentRate,
 		heatingActive:     false,
 		heatingRelay:      rpi.P1_31,
 		desiredFlowTemp:   DESIRED_FLOW_TEMPERATURE,
@@ -325,7 +327,7 @@ func (c *eBusClimate) GetStat() climate.Stat {
 	<-c.heatingTimerMutex
 	endTime := c.heatingEndTime
 	c.heatingTimerMutex <- struct{}{}
-	
+
 	stat := c.stat
 	if c.heatingActive {
 		stat.HeatingEndTime = endTime.Format("2006-01-02T15:04:05Z07:00")

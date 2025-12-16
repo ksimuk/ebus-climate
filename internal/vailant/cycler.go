@@ -11,8 +11,6 @@ const CYCLE_CHECK_INTERVAL = 1
 const BASE_TEMP = 20.0
 const ADJUSTMENT_THRESHOLD = 0.5 // only adjust if we are more than this far from target
 
-const ADJUSTMENT_RATE = 3
-
 const MIN_RUNTIME = 10 // minimum runtime in minutes 10C
 const MAX_RUNTIME = 25 // maximum runtime in minutes -3C
 
@@ -57,7 +55,7 @@ func (c *eBusClimate) adjustTemp() float64 {
 
 	adjustment := targetTemp - insideTemp
 
-	return adjustment * ADJUSTMENT_RATE
+	return adjustment * c.adjustmentRate
 }
 
 func (c *eBusClimate) getMinuteLoss() float64 {

@@ -22,6 +22,7 @@ type Config struct {
 		MaxRunTime        float64 `yaml:"max_run_time"` // maximum boiler run time in minutes
 		Loss3             int     `yaml:"loss3"`        // heatloss at -3C
 		Loss7             int     `yaml:"loss7"`        // heatloss at 7C
+		AdjustmentRate    float64 `yaml:"adjustment_rate"`
 		InternalSensorMAC string  `yaml:"internal_sensor_mac"`
 		ExternalSensorMAC string  `yaml:"external_sensor_mac"`
 	}
@@ -36,6 +37,9 @@ func Load(path string) (*Config, error) {
 	}
 
 	var cfg Config
+	// set defaults
+	cfg.Climate.AdjustmentRate = 3.0
+
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, err
 	}
