@@ -12,7 +12,7 @@ const BASE_TEMP = 20.0
 const ADJUSTMENT_THRESHOLD = 0.5 // only adjust if we are more than this far from target
 
 const MIN_RUNTIME = 10 // minimum runtime in minutes 10C
-const MAX_RUNTIME = 25 // maximum runtime in minutes -3C
+const MAX_RUNTIME = 30 // maximum runtime in minutes -3C
 
 func (c *eBusClimate) isHwcDemandActive() bool {
 	return c.stat.HwcDemand == "on" || c.stat.HwcDemand == "yes" || c.stat.HwcDemand == "1" || c.stat.HwcDemand == "true"
@@ -96,14 +96,18 @@ func (c *eBusClimate) calculateLoss() {
 }
 
 func (c *eBusClimate) getRuntime() int {
+	// aim for 1 run in hour
 	heatLoss := c.stat.CurrentHeatLoss
-	if heatLoss < 1200.0 {
+	oneMinPower := float64(c.power) / 60.0
+	minPower := oneMinPower * MIN_RUNTIME
+	maxPower := oneMinPower * MAX_RUNTIME
+	if heatLoss < minPower {
 		return MIN_RUNTIME
 	}
-	if heatLoss > 3200.0 {
+	if heatLoss > maxPower {
 		return MAX_RUNTIME
 	}
-	return MIN_RUNTIME + int((heatLoss-1200)*float64(MAX_RUNTIME-MIN_RUNTIME)/2000)
+	return MIN_RUNTIME + int((heatLoss-minPower)*float64(MAX_RUNTIME-MIN_RUNTIME)/(maxPower-minPower))
 }
 
 func (c *eBusClimate) runCycle() float64 {
