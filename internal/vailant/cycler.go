@@ -2,6 +2,7 @@
 package vailant
 
 import (
+	"math"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -11,8 +12,9 @@ const CYCLE_CHECK_INTERVAL = 1
 const BASE_TEMP = 20.0
 const ADJUSTMENT_THRESHOLD = 0.5 // only adjust if we are more than this far from target
 
-const MIN_RUNTIME = 10 // minimum runtime in minutes 10C
-const MAX_RUNTIME = 30 // maximum runtime in minutes -3C
+// per hour
+const MIN_RUNTIME = 5.0
+const MAX_RUNTIME = 30.0
 
 func (c *eBusClimate) isHwcDemandActive() bool {
 	return c.stat.HwcDemand == "on" || c.stat.HwcDemand == "yes" || c.stat.HwcDemand == "1" || c.stat.HwcDemand == "true"
@@ -82,7 +84,7 @@ func (c *eBusClimate) calculateLoss() {
 
 	currentLoss := c.getMinuteLoss()
 	c.stat.CurrentHeatLoss = currentLoss * 60 // in W
-	if !(currentLoss < 0 && c.state.HeatLoss > 2000) {
+	if !(currentLoss < 0 && c.state.HeatLoss > 3000) {
 		c.state.HeatLoss = c.state.HeatLoss - currentLoss
 	}
 	log.Debug().Msgf("heat loss balance %f, at temps %f, with loss %f", c.state.HeatLoss, c.state.OutsideTemp, currentLoss)
@@ -96,18 +98,18 @@ func (c *eBusClimate) calculateLoss() {
 }
 
 func (c *eBusClimate) getRuntime() int {
-	// aim for 1 run in hour
 	heatLoss := c.stat.CurrentHeatLoss
 	oneMinPower := float64(c.power) / 60.0
 	minPower := oneMinPower * MIN_RUNTIME
 	maxPower := oneMinPower * MAX_RUNTIME
-	if heatLoss < minPower {
-		return MIN_RUNTIME
-	}
+	calculatedRuntime := MIN_RUNTIME
 	if heatLoss > maxPower {
-		return MAX_RUNTIME
+		calculatedRuntime = MAX_RUNTIME
+	} else if heatLoss > minPower {
+		calculatedRuntime = MIN_RUNTIME + (heatLoss-minPower)*float64(MAX_RUNTIME-MIN_RUNTIME)/(maxPower-minPower)
 	}
-	return MIN_RUNTIME + int((heatLoss-minPower)*float64(MAX_RUNTIME-MIN_RUNTIME)/(maxPower-minPower))
+
+	return int(math.Round(calculatedRuntime * c.durationMultiplier))
 }
 
 func (c *eBusClimate) runCycle() float64 {
