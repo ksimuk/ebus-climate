@@ -120,6 +120,10 @@ func (c *eBusClimate) runCycle() float64 {
 	return float64(c.power*cycleLength) / 60
 }
 
+func (c *eBusClimate) RunFor(minutes int) {
+	c.runFor(minutes)
+}
+
 func (c *eBusClimate) runFor(minutes int) {
 	<-c.heatingTimerMutex                                // acquire lock
 	defer func() { c.heatingTimerMutex <- struct{}{} }() // release lock

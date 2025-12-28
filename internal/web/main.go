@@ -70,6 +70,7 @@ func (s *Server) Start() {
 
 	// Override endpoints for temperature sensors
 	http.HandleFunc("/override", s.handleOverride)
+	http.HandleFunc("/force_heating", s.handleForceHeating)
 	http.HandleFunc("/check", func(w http.ResponseWriter, r *http.Request) {
 		// todo authentication check
 		w.WriteHeader(http.StatusOK)
@@ -82,6 +83,19 @@ func (s *Server) Start() {
 	})
 
 	log.Fatal().Err(http.ListenAndServe(fmt.Sprintf(":%d", s.config.WebPort), nil)).Msg("Web server stopped")
+}
+
+func (s *Server) handleForceHeating(w http.ResponseWriter, r *http.Request) {
+	duration := r.URL.Query().Get("duration")
+	duration_int, err := strconv.Atoi(duration)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to parse duration")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	log.Info().Msgf("Forcing heating for %d minutes", duration_int)
+	s.climate.RunFor(duration_int)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (s *Server) handleSet(w http.ResponseWriter, r *http.Request) {
