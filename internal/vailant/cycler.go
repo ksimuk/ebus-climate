@@ -2,7 +2,6 @@
 package vailant
 
 import (
-	"math"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -98,18 +97,22 @@ func (c *eBusClimate) calculateLoss() {
 }
 
 func (c *eBusClimate) getRuntime() int {
-	heatLoss := c.stat.CurrentHeatLoss
-	oneMinPower := float64(c.power) / 60.0
-	minPower := oneMinPower * MIN_RUNTIME
-	maxPower := oneMinPower * MAX_RUNTIME
-	calculatedRuntime := MIN_RUNTIME
-	if heatLoss > maxPower {
-		calculatedRuntime = MAX_RUNTIME
-	} else if heatLoss > minPower {
-		calculatedRuntime = MIN_RUNTIME + (heatLoss-minPower)*float64(MAX_RUNTIME-MIN_RUNTIME)/(maxPower-minPower)
-	}
+	return 20 // try static 20 minutes for now
 
-	return int(math.Round(calculatedRuntime * c.durationMultiplier))
+	// Old dynamic implementation
+	// -----------------------------
+	// heatLoss := c.stat.CurrentHeatLoss
+	// oneMinPower := float64(c.power) / 60.0
+	// minPower := oneMinPower * MIN_RUNTIME
+	// maxPower := oneMinPower * MAX_RUNTIME
+	// calculatedRuntime := MIN_RUNTIME
+	// if heatLoss > maxPower {
+	// 	calculatedRuntime = MAX_RUNTIME
+	// } else if heatLoss > minPower {
+	// 	calculatedRuntime = MIN_RUNTIME + (heatLoss-minPower)*float64(MAX_RUNTIME-MIN_RUNTIME)/(maxPower-minPower)
+	// }
+
+	// return int(math.Round(calculatedRuntime * c.durationMultiplier))
 }
 
 func (c *eBusClimate) runCycle() float64 {
