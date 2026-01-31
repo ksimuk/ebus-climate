@@ -97,7 +97,7 @@ func (c *eBusClimate) calculateLoss() {
 }
 
 func (c *eBusClimate) getRuntime() int {
-	return 20 // try static 20 minutes for now
+	return 17 // try static 17 minutes for now // aim 40C flow max at dt10
 
 	// Old dynamic implementation
 	// -----------------------------
